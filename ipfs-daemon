@@ -1,22 +1,24 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Provides:          $ipfs-daemon 
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog $network
+# Should-Start:      $iptables $ip6tables
+# Should-Stop:       $iptables $ip6tables
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start daemon at boot time
-# Description:       Enable service provided by daemon.
+# Short-Description: Start/Stop IPFS Daemon
+# Description:       Starts or stops the IPFS Daemon with watchdogging
 ### END INIT INFO
 
-dir=""
-cmd=""
-user=""
+dir="/ipfs"
+cmd="/usr/local/bin/ipfs daemon"
+user="ipfs"
 
 name=`basename $0`
 pid_file="/var/run/$name.pid"
-stdout_log="/var/log/$name.log"
-stderr_log="/var/log/$name.err"
+tmp_file="/tmp/$name.log"
+log_file="/var/log/$name.log"
 
 get_pid() {
     cat "$pid_file"
@@ -26,6 +28,12 @@ is_running() {
     [ -f "$pid_file" ] && ps `get_pid` > /dev/null 2>&1
 }
 
+command -v logger >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+   use_logger=1
+fi
+
+
 case "$1" in
     start)
     if is_running; then
@@ -34,13 +42,25 @@ case "$1" in
         echo "Starting $name"
         cd "$dir"
         if [ -z "$user" ]; then
-            sudo $cmd >> "$stdout_log" 2>> "$stderr_log" &
+	    if [ $use_logger -eq 1 ]; then
+               sudo $cmd 2>&1 | logger -t 'ipfs-daemon' &
+	    else
+	       sudo $cmd >>"$log_file" 2>&1 &	       
+	    fi
         else
-            sudo -u "$user" $cmd >> "$stdout_log" 2>> "$stderr_log" &
+	    if [ $use_logger -eq 1 ]; then
+               #sudo -u "$user" $cmd 2>&1 | logger -t 'ipfs-daemon' &
+	       sudo -u "$user" /bin/sh -c 'echo $$>'"$tmp_file"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
+		sleep 5
+		#'"$cmd"' 2>&1 | logger -t "ipfs-daemon"&'
+	    else
+	       sudo -u "$user" $cmd >>"$log_file" 2>&1 &
+	    fi 
         fi
-        echo $! > "$pid_file"
+        #echo $! > "$pid_file"
+	mv $tmp_file $pid_file
         if ! is_running; then
-            echo "Unable to start, see $stdout_log and $stderr_log"
+            echo "Unable to start $name"
             exit 1
         fi
     fi
@@ -48,7 +68,7 @@ case "$1" in
     stop)
     if is_running; then
         echo -n "Stopping $name.."
-        kill `get_pid`
+        kill -9 `get_pid`
         for i in {1..10}
         do
             if ! is_running; then
