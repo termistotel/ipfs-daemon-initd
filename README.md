@@ -7,6 +7,7 @@ This will do a couple things.
 - It will create a daemon user "ipfsd" and ipfsd service on the system, and add it to your boot sequence. 
 - Add a watchdog cronjob which will try to restart ipfsd every now and then if it is stopped.
 
+*Note* that the watchdog cronjob might be RHEL specific... just remove it from /etc/cron.d if it doesn't work for you.
 
 Future Work
 -----------
