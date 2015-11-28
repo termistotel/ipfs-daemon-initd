@@ -1,4 +1,8 @@
 #!/bin/sh
+# This file is a part of the ipfs-daemon-initd project, and is licensed under 
+# the MIT license
+# Copyright 2015 Jeff Cochran
+#
 ### BEGIN INIT INFO
 # Provides:          ipfs-daemon 
 # Required-Start:    $remote_fs $network $named $syslog
@@ -11,14 +15,15 @@
 # Description:       Starts or stops the IPFS Daemon with watchdogging
 ### END INIT INFO
 
-dir="/ipfs"
-cmd="/usr/local/bin/ipfs daemon"
-user="ipfs"
+dir="/ipfsd"
+bin_path=`sed -n -e 's/^.*IPFS_BIN_PATH=//p' /etc/ipfsd.conf`
+cmd="$bin_path daemon"
+user="ipfsd"
 
 name=`basename $0`
 pid_file="/var/run/$name.pid"
 tmp_file="/tmp/$name.log"
-log_file="/var/log/$name.log"
+log_file="$dir/$name.log"
 
 get_pid() {
     cat "$pid_file"
