@@ -22,7 +22,7 @@ user="ipfsd"
 
 name=`basename $0`
 pid_file="/var/run/$name.pid"
-tmp_file="/tmp/$name.log"
+tmp_file="/tmp/$name.pid"
 log_file="$dir/$name.log"
 
 get_pid() {
