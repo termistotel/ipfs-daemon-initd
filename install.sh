@@ -47,6 +47,7 @@ echo '[ipfs-daemon]' > /etc/ipfsd.conf
 echo 'IPFS_BIN_PATH='"$IPFS_BIN_PATH" >> /etc/ipfsd.conf
 
 echo 'Initializing ipfs...'
+chmod o+rx $IPFS_BIN_PATH
 sudo -u ipfsd $IPFS_BIN_PATH init
 
 ln -s /ipfsd/.ipfs/logs /var/log/ipfs
