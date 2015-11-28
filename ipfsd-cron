@@ -1,0 +1,4 @@
+# This file is a part of the ipfs-daemon-initd project and is licensed
+# under the MIT license.
+# Copyright 2015 Jeff cochran
+*/5 * * * * root /usr/sbin/service ipfsd start > /dev/null 2>&1
