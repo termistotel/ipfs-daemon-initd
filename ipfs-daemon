@@ -28,12 +28,6 @@ is_running() {
     [ -f "$pid_file" ] && ps `get_pid` > /dev/null 2>&1
 }
 
-command -v logger >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-   use_logger=1
-fi
-
-
 case "$1" in
     start)
     if is_running; then
@@ -41,23 +35,8 @@ case "$1" in
     else
         echo "Starting $name"
         cd "$dir"
-        if [ -z "$user" ]; then
-	    if [ $use_logger -eq 1 ]; then
-               sudo $cmd 2>&1 | logger -t 'ipfs-daemon' &
-	    else
-	       sudo $cmd >>"$log_file" 2>&1 &	       
-	    fi
-        else
-	    if [ $use_logger -eq 1 ]; then
-               #sudo -u "$user" $cmd 2>&1 | logger -t 'ipfs-daemon' &
-	       sudo -u "$user" /bin/sh -c 'echo $$>'"$tmp_file"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
-		sleep 5
-		#'"$cmd"' 2>&1 | logger -t "ipfs-daemon"&'
-	    else
-	       sudo -u "$user" $cmd >>"$log_file" 2>&1 &
-	    fi 
-        fi
-        #echo $! > "$pid_file"
+	    sudo -u "$user" /bin/sh -c 'echo $$>'"$tmp_file"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
+  	sleep 5
 	mv $tmp_file $pid_file
         if ! is_running; then
             echo "Unable to start $name"
