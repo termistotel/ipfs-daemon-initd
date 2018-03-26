@@ -48,7 +48,16 @@ echo 'IPFS_BIN_PATH='"$IPFS_BIN_PATH" >> /etc/ipfsd.conf
 
 echo 'Initializing ipfs...'
 chmod o+rx $IPFS_BIN_PATH
+HOME='/ipfsd'
 sudo -u ipfsd $IPFS_BIN_PATH init
+
+echo 'Changing mounting points'
+mkdir /media/ipns
+mkdir /media/ipfs
+chown ipfsd:ipfsd /media/ipns
+chown ipfsd:ipfsd /media/ipfs
+sed -i -e 's/"\/ipns"/"\/media\/ipns"/g' /ipfsd/.ipfs/config
+sed -i -e 's/"\/ipfs"/"\/media\/ipfs"/g' /ipfsd/.ipfs/config
 
 ln -s /ipfsd/.ipfs/logs /var/log/ipfs
 ln -s /ipfsd/ipfsd.log /var/log/ipfsd.log
@@ -58,15 +67,12 @@ echo 'Adding init script...'
 cp ./ipfsd /etc/init.d
 chmod 755 /etc/init.d/ipfsd
 
-echo 'Adding cronjob...'
-cp ./ipfsd-cron /etc/cron.d
-
-which update-rc.d > /dev/null 2>&1
-if [ 0 -eq $? ]; then
-	update-rc.d ipfsd defaults
-	echo 'Success'
-	exit 0
-fi
+# which update-rc.d > /dev/null 2>&1
+# if [ 0 -eq $? ]; then
+# 	update-rc.d ipfsd defaults
+# 	echo 'Success'
+# 	exit 0
+# fi
 
 command -v /usr/sbin/chkconfig > /dev/null 2>&1
 if [ 0 -eq $? ]; then
