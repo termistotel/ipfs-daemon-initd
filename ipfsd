@@ -25,6 +25,14 @@ pid_file="/var/run/$name.pid"
 tmp_file="/tmp/$name.pid"
 log_file="$dir/$name.log"
 
+as_user() {
+  if [ "$ME" == "$user" ] ; then
+    /bin/bash -c "$1"
+  else
+    su - $user -c "$1"
+  fi
+}
+
 get_pid() {
     cat "$pid_file"
 }
@@ -40,8 +48,9 @@ case "$1" in
     else
         echo "Starting $name"
         cd "$dir"
-        HOME="$dir"
-	    sudo -u "$user" /bin/sh -c 'echo $$>'"$tmp_file"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
+        # HOME="$dir"
+	    # sudo -u "$user" /bin/sh -c 'echo $$>'"$tmp_file"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
+        as_user 'echo $$>'"$tmp_file"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
   	sleep 5
 	mv $tmp_file $pid_file
         if ! is_running; then
@@ -53,8 +62,9 @@ case "$1" in
     mount)
     if is_running; then
         echo "Mounting ipfs..."
-        HOME="/ipfsd"
-        sudo -u "$user" /bin/bash -c 'ipfs mount'
+        # HOME="/ipfsd"
+        # sudo -u "$user" /bin/bash -c 'ipfs mount'
+        as_user 'ipfs mount'
     else
         echo "Start ipfs first"
     fi
@@ -104,7 +114,7 @@ case "$1" in
     fi
     ;;
     *)
-    echo "Usage: $0 {start|stop|restart|status}"
+    echo "Usage: $0 {start|stop|media|restart|status}"
     exit 1
     ;;
 esac
