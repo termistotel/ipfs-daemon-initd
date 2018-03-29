@@ -82,6 +82,6 @@ if [ 0 -eq $? ]; then
 	exit 0
 fi
 
-echo 'Unable to automatically generate rc.d files. Refer to your OS manual to enable the ipfsd service at boot time. (sorry)'
+# echo 'Unable to automatically generate rc.d files. Refer to your OS manual to enable the ipfsd service at boot time. (sorry)'
 echo 'Success'
 exit 0
